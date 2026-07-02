@@ -30,8 +30,12 @@ export default function Navbar({
     if (searchQuery.trim().length > 1) {
       fetch(`/api/products?q=${encodeURIComponent(searchQuery)}`)
         .then(res => res.json())
-        .then((data: Product[]) => {
-          setSearchResults(data.slice(0, 5));
+        .then((data: any) => {
+          if (Array.isArray(data)) {
+            setSearchResults(data.slice(0, 5));
+          } else {
+            setSearchResults([]);
+          }
         })
         .catch(err => console.error(err));
     } else {

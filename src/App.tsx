@@ -50,8 +50,12 @@ export default function App() {
     setProductsLoading(true);
     fetch('/api/products')
       .then(res => res.json())
-      .then((data: Product[]) => {
-        setProducts(data);
+      .then((data: any) => {
+        if (Array.isArray(data)) {
+          setProducts(data);
+        } else {
+          setProducts([]);
+        }
         setProductsLoading(false);
       })
       .catch(err => {

@@ -297,7 +297,7 @@ export default function ProductDetailPage({
                               <iframe
                                 src={getInstagramEmbedUrl(activeItem.url)}
                                 className="w-full h-full border-0"
-                                allowTransparency
+                                allowtransparency="true"
                                 scrolling="no"
                                 frameBorder="0"
                                 title="Instagram Reel Lookbook"

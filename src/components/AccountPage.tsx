@@ -60,8 +60,12 @@ export default function AccountPage({
       setOrdersLoading(true);
       fetch(`/api/orders?email=${encodeURIComponent(user.email)}`)
         .then(res => res.json())
-        .then((data: Order[]) => {
-          setOrders(data);
+        .then((data: any) => {
+          if (Array.isArray(data)) {
+            setOrders(data);
+          } else {
+            setOrders([]);
+          }
           setOrdersLoading(false);
         })
         .catch(err => {

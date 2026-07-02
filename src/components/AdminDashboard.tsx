@@ -149,7 +149,7 @@ export default function AdminDashboard({ onNavigate, products, onRefreshProducts
         if (Array.isArray(data)) setOrders(data);
       })
       .catch(err => {
-        console.error('Failed to fetch orders:', err);
+        if (err.message !== 'Unauthorized') console.error('Failed to fetch orders:', err);
       });
 
     const p2 = fetch('/api/coupons')
@@ -158,7 +158,7 @@ export default function AdminDashboard({ onNavigate, products, onRefreshProducts
         if (Array.isArray(data)) setCoupons(data);
       })
       .catch(err => {
-        console.error('Failed to fetch coupons:', err);
+        if (err.message !== 'Unauthorized') console.error('Failed to fetch coupons:', err);
       });
 
     const p3 = fetch('/api/consultations')
@@ -167,7 +167,7 @@ export default function AdminDashboard({ onNavigate, products, onRefreshProducts
         if (Array.isArray(data)) setConsultations(data);
       })
       .catch(err => {
-        console.error('Failed to fetch consultations:', err);
+        if (err.message !== 'Unauthorized') console.error('Failed to fetch consultations:', err);
       });
 
     const p4 = fetch('/api/cms')
@@ -178,7 +178,7 @@ export default function AdminDashboard({ onNavigate, products, onRefreshProducts
         }
       })
       .catch(err => {
-        console.error('Failed to fetch CMS data:', err);
+        if (err.message !== 'Unauthorized') console.error('Failed to fetch CMS data:', err);
       });
 
     const p5 = fetch('/api/admin/logs')
@@ -187,7 +187,7 @@ export default function AdminDashboard({ onNavigate, products, onRefreshProducts
         if (Array.isArray(data)) setLogs(data);
       })
       .catch(err => {
-        console.error('Failed to fetch admin logs:', err);
+        if (err.message !== 'Unauthorized') console.error('Failed to fetch admin logs:', err);
       });
 
     Promise.all([p1, p2, p3, p4, p5])

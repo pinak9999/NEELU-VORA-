@@ -27,8 +27,8 @@ export default function Homepage({
     fetch('/api/cms')
       .then(res => res.json())
       .then(data => {
-        if (data.banners) setBanners(data.banners);
-        if (data.blogs) setBlogs(data.blogs);
+        if (data && Array.isArray(data.banners)) setBanners(data.banners);
+        if (data && Array.isArray(data.blogs)) setBlogs(data.blogs);
       })
       .catch(err => console.error(err));
   }, []);

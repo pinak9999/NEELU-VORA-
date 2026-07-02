@@ -53,11 +53,13 @@ export default function CollectionPage({
 
     fetch(url)
       .then(res => res.json())
-      .then((data: Product[]) => {
-        // Price slider client-side filtering for sub-adjusts
-        let filtered = data.filter(p => (p.discountedPrice || p.price) <= maxPrice);
-        if (occasion) {
-          filtered = filtered.filter(p => p.occasion?.toLowerCase() === occasion.toLowerCase());
+      .then((data: any) => {
+        let filtered: Product[] = [];
+        if (Array.isArray(data)) {
+          filtered = data.filter((p: Product) => (p.discountedPrice || p.price) <= maxPrice);
+          if (occasion) {
+            filtered = filtered.filter((p: Product) => p.occasion?.toLowerCase() === occasion.toLowerCase());
+          }
         }
         setProducts(filtered);
         setLoading(false);
