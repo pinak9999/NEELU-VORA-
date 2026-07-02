@@ -50,14 +50,14 @@ export default function Navbar({
 
   return (
     <header id="nav-header" className="sticky top-0 z-50 bg-luxury-black text-white border-b border-gold-800/30 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20 relative">
           
           {/* Mobile Menu Button */}
           <button
             id="mobile-menu-btn"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden text-gold-300 hover:text-white p-2"
+            className="md:hidden text-gold-300 hover:text-white p-1 sm:p-2"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -108,26 +108,26 @@ export default function Navbar({
           </nav>
 
           {/* Center: Brand Logo */}
-          <div className="flex-1 text-center md:absolute md:left-1/2 md:-translate-x-1/2">
-            <button id="logo-btn" onClick={() => onNavigate('home')} className="inline-block text-left group">
-              <span className="block font-serif text-xl sm:text-2xl tracking-widest text-gold-300 font-bold uppercase transition group-hover:text-gold-100">
+          <div className="absolute left-1/2 -translate-x-1/2 text-center w-max">
+            <button id="logo-btn" onClick={() => onNavigate('home')} className="inline-block text-center group">
+              <span className="block font-serif text-base sm:text-2xl tracking-widest text-gold-300 font-bold uppercase transition group-hover:text-gold-100 whitespace-nowrap">
                 Neelu Vora
               </span>
-              <span className="block text-[8px] tracking-[0.4em] uppercase text-gold-400 text-center font-sans font-medium">
+              <span className="block text-[6px] sm:text-[8px] tracking-[0.2em] sm:tracking-[0.4em] uppercase text-gold-400 text-center font-sans font-medium mt-0.5 sm:mt-0 whitespace-nowrap">
                 Fashion • Haute Atelier
               </span>
             </button>
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center space-x-3 sm:space-x-4">
+          <div className="flex items-center justify-end space-x-1.5 sm:space-x-4">
             
             {/* Search Toggle */}
             <div className="relative">
               <button
                 id="nav-search-btn"
                 onClick={() => setShowSearch(!showSearch)}
-                className="p-2 text-gold-300 hover:text-white transition"
+                className="p-1 sm:p-2 text-gold-300 hover:text-white transition"
                 title="Search Products"
               >
                 <Search size={20} />
@@ -177,7 +177,7 @@ export default function Navbar({
             <button
               id="nav-wishlist-btn"
               onClick={() => onNavigate('account', { tab: 'wishlist' })}
-              className="p-2 text-gold-300 hover:text-white transition relative"
+              className="p-1 sm:p-2 text-gold-300 hover:text-white transition relative"
               title="My Wishlist"
             >
               <Heart size={20} />
@@ -192,7 +192,7 @@ export default function Navbar({
             <button
               id="nav-cart-btn"
               onClick={() => onNavigate('cart')}
-              className="p-2 text-gold-300 hover:text-white transition relative"
+              className="p-1 sm:p-2 text-gold-300 hover:text-white transition relative"
               title="Shopping Cart"
             >
               <ShoppingBag size={20} />
@@ -208,7 +208,7 @@ export default function Navbar({
               <button
                 id="nav-user-dropdown-btn"
                 onClick={() => setShowUserDropdown(!showUserDropdown)}
-                className="p-2 text-gold-300 hover:text-white transition flex items-center"
+                className="p-1 sm:p-2 text-gold-300 hover:text-white transition flex items-center"
                 title="Account Menu"
               >
                 <User size={20} />
