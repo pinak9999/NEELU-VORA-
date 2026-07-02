@@ -1,0 +1,8 @@
+{
+  "name": "Neelu Vora Fashion",
+  "description": "Ultra-premium luxury e-commerce platform for fine jewelry and designer apparel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
