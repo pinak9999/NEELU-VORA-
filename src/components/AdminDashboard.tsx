@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { LayoutDashboard, ShoppingCart, Tag, Globe, UploadCloud, RefreshCw, FileText, Plus, Trash2, CheckCircle2, Video, Sparkles, Database, Settings, Search, Filter, Edit, ChevronLeft, ChevronRight, AlertCircle, X } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Tag, Globe, UploadCloud, RefreshCw, FileText, Plus, Trash2, CheckCircle2, Video, Sparkles, Database, Settings, Search, Filter, Edit2, Eye, Edit, ChevronLeft, ChevronRight, AlertCircle, X } from 'lucide-react';
 import { Order, Coupon, CMSBanner, CMSBlog, Product, Consultation } from '../types';
 
 interface AdminDashboardProps {
@@ -45,6 +45,9 @@ export default function AdminDashboard({ onNavigate, products, onRefreshProducts
   const [bannerSub, setBannerSub] = useState('');
   const [bannerImg, setBannerImg] = useState('');
   const [bannerCta, setBannerCta] = useState('Explore');
+  const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
+  const [deletingBannerId, setDeletingBannerId] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // Bulk CSV Upload
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -388,21 +391,39 @@ export default function AdminDashboard({ onNavigate, products, onRefreshProducts
   };
 
   // Update CMS Hero Banners
-  const handleAddBanner = (e: React.FormEvent) => {
+  const handleSaveBanner = (e: React.FormEvent) => {
     e.preventDefault();
     if (!bannerTitle || !bannerImg) return;
 
+    let updatedBanners = [...banners];
+    
+    if (editingBannerId) {
+      updatedBanners = updatedBanners.map((b, idx) => 
+        (b.id === editingBannerId || idx.toString() === editingBannerId)
+        ? {
+            ...b,
+            image: bannerImg,
+            title: bannerTitle,
+            subtitle: bannerSub,
+            ctaText: bannerCta,
+            ctaLink: '/collection'
+          }
+        : b
+      );
+    } else {
+      updatedBanners.push({
+        id: 'banner_' + Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        image: bannerImg,
+        title: bannerTitle,
+        subtitle: bannerSub,
+        ctaText: bannerCta,
+        ctaLink: '/collection'
+      });
+    }
+
     const bannerPayload = {
-      banners: [
-        ...banners,
-        {
-          image: bannerImg,
-          title: bannerTitle,
-          subtitle: bannerSub,
-          ctaText: bannerCta,
-          ctaLink: '/collection'
-        }
-      ]
+      banners: updatedBanners
     };
 
     fetch('/api/cms/banners', {
@@ -412,12 +433,56 @@ export default function AdminDashboard({ onNavigate, products, onRefreshProducts
     })
       .then(res => res.json())
       .then(data => {
-        setBanners(data.banners);
-        setBannerTitle('');
-        setBannerSub('');
-        setBannerImg('');
+        setBanners(Array.isArray(data) ? data : data.banners || updatedBanners);
+        resetBannerForm();
+        showToast('Banner saved successfully', 'success');
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        setToastMessage({ type: 'error', text: 'Failed to save banner' });
+      });
+  };
+
+  const handleEditBanner = (banner: CMSBanner, idx: number) => {
+    setEditingBannerId(banner.id || idx.toString());
+    setBannerTitle(banner.title);
+    setBannerSub(banner.subtitle);
+    setBannerImg(banner.image);
+    setBannerCta(banner.ctaText || 'Explore');
+    
+    const formEl = document.getElementById('cms-form-section');
+    if (formEl) formEl.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const resetBannerForm = () => {
+    setEditingBannerId(null);
+    setBannerTitle('');
+    setBannerSub('');
+    setBannerImg('');
+    setBannerCta('Explore');
+  };
+
+  const handleConfirmDeleteBanner = () => {
+    if (!deletingBannerId) return;
+
+    const updatedBanners = banners.filter((b, idx) => 
+      (b.id || idx.toString()) !== deletingBannerId
+    );
+
+    fetch(`/api/cms/banners/${deletingBannerId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setBanners(Array.isArray(data) ? data : data.banners || updatedBanners);
+        setDeletingBannerId(null);
+        setToastMessage({ type: 'success', text: 'Banner deleted permanently' });
+      })
+      .catch(err => {
+        console.error(err);
+        setToastMessage({ type: 'error', text: 'Failed to delete banner' });
+      });
   };
 
   // Bulk Products CSV parser trigger (Section 13.5)
@@ -952,9 +1017,11 @@ export default function AdminDashboard({ onNavigate, products, onRefreshProducts
                 CMS Page Customization
               </h2>
 
-              <div className="bg-white border border-gold-200 p-6 rounded shadow-sm">
-                <h4 className="font-serif text-base font-bold text-luxury-black mb-4 uppercase tracking-wider">Append Hero Landing Banner</h4>
-                <form onSubmit={handleAddBanner} className="space-y-4">
+              <div id="cms-form-section" className="bg-white border border-gold-200 p-6 rounded shadow-sm">
+                <h4 className="font-serif text-base font-bold text-luxury-black mb-4 uppercase tracking-wider">
+                  {editingBannerId ? 'Edit Hero Landing Banner' : 'Append Hero Landing Banner'}
+                </h4>
+                <form onSubmit={handleSaveBanner} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-[9px] uppercase font-bold text-gray-500 block mb-1">Banner Title</label>
@@ -992,14 +1059,116 @@ export default function AdminDashboard({ onNavigate, products, onRefreshProducts
                       className="w-full border border-gold-300 text-xs rounded px-3 py-2 text-gray-700 focus:outline-none"
                     />
                   </div>
-                  <button
-                    id="submit-banner-btn"
-                    type="submit"
-                    className="bg-luxury-black hover:bg-gold-600 hover:text-black text-white font-bold text-[9px] uppercase tracking-widest px-6 py-2.5 rounded transition"
-                  >
-                    Append Banner Slide
-                  </button>
+                  <div className="flex gap-4">
+                    <button
+                      id="submit-banner-btn"
+                      type="submit"
+                      className="bg-luxury-black hover:bg-gold-600 hover:text-black text-white font-bold text-[9px] uppercase tracking-widest px-6 py-2.5 rounded transition"
+                    >
+                      {editingBannerId ? 'Save Changes' : 'Append Banner Slide'}
+                    </button>
+                    {editingBannerId && (
+                      <button
+                        type="button"
+                        onClick={resetBannerForm}
+                        className="bg-gray-200 hover:bg-gray-300 text-luxury-black font-bold text-[9px] uppercase tracking-widest px-6 py-2.5 rounded transition"
+                      >
+                        Cancel Edit
+                      </button>
+                    )}
+                  </div>
                 </form>
+              </div>
+
+              {/* CMS Entries Grid */}
+              <div className="mt-8">
+                <h3 className="font-serif text-lg font-bold text-luxury-black uppercase tracking-wider mb-4 border-b border-gold-100 pb-2">Existing Hero Banners</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {banners.map((banner, idx) => (
+                    <div key={banner.id || idx} className="bg-white border border-gold-200 rounded shadow-sm overflow-hidden flex flex-col group">
+                      <div className="h-40 w-full overflow-hidden relative">
+                        <img src={banner.image} alt={banner.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                          <button
+                            onClick={() => setPreviewImage(banner.image)}
+                            className="bg-white/20 hover:bg-white/40 text-white p-2 rounded backdrop-blur-sm"
+                            title="Preview Image"
+                          >
+                            <Eye size={20} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                          <h4 className="font-serif font-bold text-sm text-luxury-black mb-1">{banner.title}</h4>
+                          <p className="text-xs text-gray-500 line-clamp-2 mb-2">{banner.subtitle}</p>
+                          <p className="text-[10px] text-gold-700 font-mono">
+                            Created: {banner.createdAt ? new Date(banner.createdAt).toLocaleDateString() : 'N/A'}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 mt-4 pt-3 border-t border-gold-100">
+                          <button
+                            onClick={() => handleEditBanner(banner, idx)}
+                            className="flex-1 flex items-center justify-center gap-2 bg-gold-50 hover:bg-gold-100 text-luxury-black font-bold text-[10px] uppercase tracking-widest py-2 rounded transition"
+                          >
+                            <Edit2 size={12} /> Edit
+                          </button>
+                          <button
+                            onClick={() => setDeletingBannerId(banner.id || idx.toString())}
+                            className="flex-1 flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[10px] uppercase tracking-widest py-2 rounded transition"
+                          >
+                            <Trash2 size={12} /> Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {banners.length === 0 && (
+                    <p className="text-sm text-gray-500 italic col-span-full">No banners found. Add one above.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {deletingBannerId && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-luxury-black/60 backdrop-blur-sm p-4">
+              <div className="bg-white border border-gold-200 rounded shadow-2xl p-6 max-w-sm w-full animate-fadeIn relative">
+                <div className="absolute top-0 left-0 w-full h-1 bg-red-500"></div>
+                <h3 className="font-serif text-lg font-bold text-luxury-black uppercase tracking-wider mb-2">Delete Banner</h3>
+                <p className="text-sm text-gray-600 mb-6 font-sans">
+                  Are you sure you want to permanently delete this CMS content? This action cannot be undone and it will be removed from the website immediately.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setDeletingBannerId(null)}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-luxury-black font-bold text-xs uppercase tracking-widest py-3 rounded transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmDeleteBanner}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-widest py-3 rounded transition shadow-md"
+                  >
+                    Delete Permanently
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Image Preview Modal */}
+          {previewImage && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-luxury-black/80 backdrop-blur-sm p-4" onClick={() => setPreviewImage(null)}>
+              <div className="relative max-w-4xl w-full" onClick={(e) => e.stopPropagation()}>
+                <button 
+                  onClick={() => setPreviewImage(null)}
+                  className="absolute -top-12 right-0 text-white hover:text-gold-300 transition p-2"
+                >
+                  <X size={28} />
+                </button>
+                <img src={previewImage} alt="Preview" className="w-full h-auto rounded border-2 border-gold-800 shadow-2xl object-contain max-h-[85vh]" />
               </div>
             </div>
           )}

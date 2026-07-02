@@ -112,11 +112,13 @@ export interface Review {
 }
 
 export interface CMSBanner {
+  id?: string;
   image: string;
   title: string;
   subtitle: string;
   ctaText: string;
   ctaLink: string;
+  createdAt?: string;
 }
 
 export interface CMSBlog {

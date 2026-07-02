@@ -1034,6 +1034,21 @@ apiRouter.put('/cms/banners', (req: Request, res: Response) => {
   res.status(400).json({ error: 'No banner data provided' });
 });
 
+apiRouter.delete('/cms/banners/:id', (req: Request, res: Response) => {
+  const db = dbInstance.getDB();
+  const id = req.params.id;
+  
+  const initialLength = db.cms.banners.length;
+  db.cms.banners = db.cms.banners.filter((b, idx) => (b.id || idx.toString()) !== id);
+  
+  if (db.cms.banners.length < initialLength) {
+    dbInstance.save();
+    dbInstance.log('admin@neeluvora.com', `Deleted CMS banner ${id}`);
+    return res.json(db.cms.banners);
+  }
+  return res.status(404).json({ error: 'Banner not found' });
+});
+
 apiRouter.put('/cms/legal', (req: Request, res: Response) => {
   const db = dbInstance.getDB();
   const { key, markdown } = req.body;
