@@ -738,6 +738,23 @@ apiRouter.post('/orders/:id/refund', async (req: Request, res: Response) => {
   }
 });
 
+apiRouter.post('/orders/:id/return', async (req: Request, res: Response) => {
+  try {
+    const { returnReason } = req.body;
+    const order = await OrderModel.findById(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    order.orderStatus = 'Return Requested';
+    order.refundReason = returnReason || 'Customer requested return';
+    
+    await order.save();
+    await logActivity('system', `Customer requested return for Order ${order._id}`);
+    res.json(order.toJSON());
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 apiRouter.get('/orders/:id/invoice', async (req: Request, res: Response) => {
   try {
     const order = await OrderModel.findById(req.params.id);
@@ -922,9 +939,9 @@ apiRouter.delete('/coupons/:id', async (req: Request, res: Response) => {
   }
 });
 
-apiRouter.get('/coupons/validate/:code', async (req: Request, res: Response) => {
+apiRouter.get('/coupons/verify', async (req: Request, res: Response) => {
   try {
-    const code = req.params.code.toUpperCase();
+    const code = String(req.query.code || '').toUpperCase();
     const cartValue = Number(req.query.cartValue || 0);
     const coupon = await CouponModel.findOne({ code, active: true });
 
@@ -946,17 +963,26 @@ apiRouter.get('/coupons/validate/:code', async (req: Request, res: Response) => 
       return res.status(400).json({ valid: false, error: 'Coupon usage limit exceeded' });
     }
 
-    res.json({
-      valid: true,
-      code: coupon.code,
-      discountType: coupon.discountType,
-      discountValue: coupon.discountValue,
-      maxDiscountCap: coupon.maxDiscountCap
-    });
+    res.json(coupon.toJSON());
   } catch (err) {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// -------------------------------------------------------------------------
+// SHIPPING API
+// -------------------------------------------------------------------------
+apiRouter.get('/shipping/pincode/:pincode', (req: Request, res: Response) => {
+  const pincode = req.params.pincode;
+  const isMetro = ['400', '110', '560', '600', '700'].some(prefix => pincode.startsWith(prefix));
+  
+  res.json({
+    deliverable: true,
+    estimatedDays: isMetro ? '2-3 Business Days' : '4-6 Business Days',
+    courierPartner: isMetro ? 'BVC Logistics (Armored)' : 'BlueDart Express'
+  });
+});
+
 
 
 // -------------------------------------------------------------------------

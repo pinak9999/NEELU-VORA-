@@ -19,6 +19,11 @@ async function startServer() {
 
   // Mount e-commerce API routes
   app.use("/api", apiRouter);
+  
+  // Catch-all for API 404s
+  app.use("/api/*", (req, res) => {
+    res.status(404).json({ error: "API route not found" });
+  });
 
   // Vite middleware for development or static serving for production
   if (process.env.NODE_ENV !== "production") {
